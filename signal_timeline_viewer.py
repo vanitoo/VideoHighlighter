@@ -202,7 +202,7 @@ class SignalTimelineWindow(QMainWindow):
         w = min(1600, screen.width() - 20)
         h = min(1000, screen.height() - 20)
         self.resize(w, h)
-        self.setMaximumHeight(screen.height())
+        self.setMinimumSize(600, 400)
         self.move(screen.x() + (screen.width() - w) // 2, screen.y())
         
         # Make window semi-transparent
@@ -1317,7 +1317,7 @@ class SignalTimelineWindow(QMainWindow):
         self.edit_view.setRenderHint(QPainter.RenderHint.Antialiasing)
         self.edit_view.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         self.edit_view.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.edit_view.setFixedHeight(120)
+        self.edit_view.setMinimumHeight(100)
         self.edit_view.setAcceptDrops(True)
         self.edit_view.viewport().setAcceptDrops(True)
         self.edit_view.setStyleSheet("""
@@ -1371,7 +1371,18 @@ class SignalTimelineWindow(QMainWindow):
         # Set splitter sizes (signal timeline gets more space)
         splitter.setSizes([500, 200])
         
-        main_layout.addWidget(splitter)
+        # Wrap splitter in scroll area for expandability
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+        scroll_content = QWidget()
+        scroll_layout = QVBoxLayout(scroll_content)
+        scroll_layout.setContentsMargins(0, 0, 0, 0)
+        scroll_layout.addWidget(main_layout)
+        scroll_area.setWidget(scroll_content)
+        
+        main_layout = QVBoxLayout(central_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.addWidget(scroll_area)
         
         # Add controls panel
         controls_dock = self.create_controls_dock()

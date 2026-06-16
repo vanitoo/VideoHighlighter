@@ -1,12 +1,32 @@
 video:
-  path: ''
+  paths:
+  - G:/iven/2/Yandex.Disk/0_Проекты/video_ira/001_Никольская/001_никольская.mp4
+download:
+  last_url: ''
+  link_pattern: /video/
+  save_dir: D:\movies
+  auto_add: true
+  auto_process: false
+  auto_combine: true
+  use_same_time_range: false
+  immediate_processing: true
+  concurrent_downloads: 1
+  download_full: false
+  time_range_start: 0
+  time_range_end: 300
 highlights:
   clip_time: 10
-  output: ''
+  output: 001_никольская_highlight.mp4
   max_duration: 420
   exact_duration: 0
   keep_temp: false
   skip_highlights: false
+  auto_min_clip: 2
+  auto_max_clip: 30
+  auto_merge_gap: 2
+  use_time_range: true
+  range_start_pct: 0
+  range_end_pct: 100
 scoring:
   scene_points: 0
   motion_event_points: 3
@@ -20,21 +40,35 @@ scoring:
   min_signals_for_boost: 2
 actions:
   interesting: []
+  require_objects: false
 objects:
   interesting: []
+  confidence: 30
 keywords:
   transcript_file: transcript.txt
   interesting: []
 transcript:
   enabled: false
   model: base
+  source_lang: en
   search_keywords: []
 subtitles:
   enabled: false
   source_lang: en
   target_lang: pl
 advanced:
-  frame_skip: 5
+  frame_skip: 1
   object_frame_skip: 10
-  yolo_pt_path: ''
-  openvino_model_folder: ''
+  sample_rate: 5
+  yolo_type: standard
+  yolo_model_size: n
+  action_backend: auto
+  r3d_model: r3d_18
+  action_models: intel_only
+visualization:
+  draw_object_boxes: false
+  draw_action_labels: false
+avoid:
+  face_recognition_enabled: true
+ui:
+  suppress_no_cache_warning: true

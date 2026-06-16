@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QPushButton, QFileDialog, QLineEdit, QSpinBox,
     QGroupBox, QTextEdit, QFormLayout, QProgressBar, QCheckBox,
     QComboBox, QTabWidget, QListWidget, QSplitter,
-    QDialog, QDialogButtonBox, QAbstractItemView,
+    QDialog, QDialogButtonBox, QAbstractItemView, QScrollArea,
 )
 from PySide6.QtCore import Qt, QThread, Signal, QTimer, QMetaObject, Q_ARG, Slot, QStringListModel
 from downloader import download_videos_with_immediate_processing, extract_video_links, DownloadError, reset_duration_method_cache
@@ -567,7 +567,7 @@ class VideoHighlighterGUI(QWidget):
         w = min(1000, screen.width() - 20)
         h = min(800, screen.height() - 20)
         self.resize(w, h)
-        self.setMaximumHeight(screen.height())
+        self.setMinimumSize(600, 400)
         self.move(screen.x() + (screen.width() - w) // 2, screen.y())
 
         
@@ -602,7 +602,6 @@ class VideoHighlighterGUI(QWidget):
 
         # File list
         self.file_list = QListWidget()
-        self.file_list.setMaximumHeight(120)
         file_layout.addWidget(self.file_list)
 
         saved_paths = self.config_data.get("video", {}).get("paths", [])
@@ -790,14 +789,14 @@ class VideoHighlighterGUI(QWidget):
         download_form.addLayout(save_dir_layout)
 
         # Time range selection for downloads
-        time_range_group = QGroupBox("Download Time Range (Optional)")
-        time_range_layout = QVBoxLayout()
+        dl_time_range_group = QGroupBox("Download Time Range (Optional)")
+        dl_time_range_layout = QVBoxLayout()
 
         # Full download checkbox (default: unchecked = download only time range)
         self.download_full_chk = QCheckBox("Download full video")
         self.download_full_chk.setChecked(False)  # Default: download only time range
         self.download_full_chk.setToolTip("When unchecked, only downloads the specified time range")
-        time_range_layout.addWidget(self.download_full_chk)
+        dl_time_range_layout.addWidget(self.download_full_chk)
 
         # Time range inputs
         time_input_layout = QHBoxLayout()
@@ -815,19 +814,19 @@ class VideoHighlighterGUI(QWidget):
         self.download_end_input.setEnabled(True)  # Enabled by default
         time_input_layout.addWidget(self.download_end_input)
 
-        time_range_layout.addLayout(time_input_layout)
+        dl_time_range_layout.addLayout(time_input_layout)
 
         # Duration label
         self.download_duration_label = QLabel("Duration: 300s (5:00)")
-        time_range_layout.addWidget(self.download_duration_label)
+        dl_time_range_layout.addWidget(self.download_duration_label)
 
         # Connect signals
         self.download_start_input.valueChanged.connect(self.update_download_duration)
         self.download_end_input.valueChanged.connect(self.update_download_duration)
         self.download_full_chk.toggled.connect(self.on_download_full_toggle)
 
-        time_range_group.setLayout(time_range_layout)
-        download_form.addWidget(time_range_group)
+        dl_time_range_group.setLayout(dl_time_range_layout)
+        download_form.addWidget(dl_time_range_group)
 
         # Download time range options
         download_time_group = QGroupBox("Download Time Range")
@@ -902,7 +901,15 @@ class VideoHighlighterGUI(QWidget):
         download_group.setLayout(download_form)
         download_layout.addWidget(download_group)
         download_layout.addStretch()
-        download_tab.setLayout(download_layout)
+        
+        # Wrap download tab content in scroll area
+        download_scroll = QScrollArea()
+        download_scroll.setWidgetResizable(True)
+        download_scroll_content = QWidget()
+        download_scroll_content.setLayout(download_layout)
+        download_scroll.setWidget(download_scroll_content)
+        download_tab.setLayout(QVBoxLayout())
+        download_tab.layout().addWidget(download_scroll)
         tabs.addTab(download_tab, "Download")
 
         # --- Tab 1: Basic Settings ---
@@ -1056,8 +1063,14 @@ class VideoHighlighterGUI(QWidget):
         self.skip_highlights_chk.setChecked(highlights_cfg.get("skip_highlights", False))
         basic_layout.addWidget(self.skip_highlights_chk)
 
-        basic_tab.setLayout(basic_layout)
-        tabs.addTab(basic_tab, "Basic Settings")
+        # Wrap basic tab content in scroll area
+        basic_scroll = QScrollArea()
+        basic_scroll.setWidgetResizable(True)
+        basic_scroll_content = QWidget()
+        basic_scroll_content.setLayout(basic_layout)
+        basic_scroll.setWidget(basic_scroll_content)
+
+        tabs.addTab(basic_scroll, "Basic Settings")
 
         # --- Tab 2: Transcript & Subtitles ---
         transcript_cfg = self.config_data.get("transcript", {})
@@ -1116,8 +1129,14 @@ class VideoHighlighterGUI(QWidget):
         subtitle_group.setLayout(subtitle_form)
         transcript_layout.addWidget(subtitle_group)
 
-        transcript_tab.setLayout(transcript_layout)
-        tabs.addTab(transcript_tab, "Transcript && Subtitles")
+        # Wrap transcript tab content in scroll area
+        transcript_scroll = QScrollArea()
+        transcript_scroll.setWidgetResizable(True)
+        transcript_scroll_content = QWidget()
+        transcript_scroll_content.setLayout(transcript_layout)
+        transcript_scroll.setWidget(transcript_scroll_content)
+
+        tabs.addTab(transcript_scroll, "Transcript && Subtitles")
 
         # --- Tab 3: Advanced Tab ---
         advanced_cfg = self.config_data.get("advanced", {})
@@ -1312,8 +1331,15 @@ class VideoHighlighterGUI(QWidget):
         advanced_layout.addWidget(bbox_box)
 
         advanced_layout.addStretch()
-        advanced_tab.setLayout(advanced_layout)
-        tabs.addTab(advanced_tab, "Advanced")
+
+        # Wrap advanced tab content in scroll area
+        advanced_scroll = QScrollArea()
+        advanced_scroll.setWidgetResizable(True)
+        advanced_scroll_content = QWidget()
+        advanced_scroll_content.setLayout(advanced_layout)
+        advanced_scroll.setWidget(advanced_scroll_content)
+
+        tabs.addTab(advanced_scroll, "Advanced")
 
         content_splitter = QSplitter(Qt.Vertical)
         content_splitter.addWidget(tabs)
@@ -1328,8 +1354,6 @@ class VideoHighlighterGUI(QWidget):
         tabs.addTab(llm_tab, "🤖 LLM Chat")
 
         # --- Tab 5: Avoid ---
-        from PySide6.QtWidgets import QScrollArea
-
         avoid_tab = QWidget()
         avoid_layout = QVBoxLayout()
 
@@ -1428,7 +1452,6 @@ class VideoHighlighterGUI(QWidget):
         # --- Log view (inside splitter) ---
         self.log_output = QTextEdit()
         self.log_output.setReadOnly(True)
-        self.log_output.setMinimumHeight(80)
         self.log_output.setStyleSheet("QTextEdit { font-family: 'Courier New', monospace; font-size: 9pt; }")
         log_widget = QWidget()
         log_layout = QVBoxLayout(log_widget)
@@ -1438,7 +1461,6 @@ class VideoHighlighterGUI(QWidget):
         content_splitter.addWidget(log_widget)
         content_splitter.setStretchFactor(0, 3)
         content_splitter.setStretchFactor(1, 1)
-        content_splitter.setSizes([h - 200, 150])  # give log ~150px
 
         self.setLayout(layout)
 

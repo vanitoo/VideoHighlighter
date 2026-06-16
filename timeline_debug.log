@@ -1,0 +1,138 @@
+[01:39:20.501] ============================================================
+[01:39:20.501] 🚀 TIMELINE VIEWER STARTING
+[01:39:20.502] ============================================================
+[01:39:20.502] Python version: 3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]
+[01:39:20.502] Current working directory: C:\project\VideoHighlighter
+[01:39:20.502] Script location: c:\project\VideoHighlighter\signal_timeline_viewer.py
+[01:39:25.638] SignalTimelineWindow.__init__ CALLED with video_path=G:/iven/2/Yandex.Disk/0_Проекты/video_ira/Улицы Московские.mp4
+[01:39:25.639]   cache_data provided: True
+[01:39:25.639] 
+============================================================
+[01:39:25.640] 🔍 [TIMELINE] SignalTimelineWindow.__init__ START
+[01:39:25.640] ============================================================
+[01:39:25.640]   - video_path: G:/iven/2/Yandex.Disk/0_Проекты/video_ira/Улицы Московские.mp4
+[01:39:25.640]   - cache_data provided: True
+[01:39:25.641]   - cache_data type: <class 'dict'>
+[01:39:25.641]   - cache_data keys: None
+[01:39:25.641]   ✓ Using provided cache_data
+[01:39:25.642] 
+  📊 FINAL CACHE DATA STATE:
+[01:39:25.642]   - self.cache_data is None? False
+[01:39:25.642]   - video_duration from cache: 0
+[01:39:25.642]   - Attempting to get duration from video file...
+[01:39:25.653]   - Got video duration from file: 1561.4s
+[01:39:25.654] 
+🔍 [TIMELINE] get_cache_instance
+[01:39:25.655]   - Cache directory contains 0 cache files:
+[01:39:25.656]   - cache instance: True
+[01:39:25.656] 
+  📊 EXTRACTED INFO:
+[01:39:25.657]   - action_types: []
+[01:39:25.657]   - object_classes: []
+[01:39:25.657]   - waveform loaded: False, length: 0
+[01:39:25.658] 
+  🎨 Initializing UI...
+[01:39:25.659] 🎵 init_ui: Creating scene with waveform data (0 points)
+[01:39:25.887] ✅ Live overlay loaded (0 detections)
+[01:39:25.908] ✅ Precomp overlay manager ready
+[01:39:25.914] ⚠️ No transcript file found next to video
+[01:39:25.943]   ⚠️ No cached waveform or empty waveform, starting extraction...
+[01:39:26.021] ✓ Video contains audio stream
+[01:39:26.022] 🎵 [thread] Starting waveform extraction...
+[01:39:26.022] 
+============================================================
+[01:39:26.023] ✅ [TIMELINE] SignalTimelineWindow.__init__ COMPLETE
+[01:39:26.023] ============================================================
+
+[01:39:27.279] ✅ [thread] extract_waveform() returned list len=2001 first=(-0.139404296875, 0.12615966796875)
+[01:48:51.372] ============================================================
+[01:48:51.372] 🚀 TIMELINE VIEWER STARTING
+[01:48:51.372] ============================================================
+[01:48:51.372] Python version: 3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]
+[01:48:51.373] Current working directory: C:\project\VideoHighlighter
+[01:48:51.373] Script location: c:\project\VideoHighlighter\signal_timeline_viewer.py
+[01:48:57.521] SignalTimelineWindow.__init__ CALLED with video_path=G:/iven/2/Yandex.Disk/0_Проекты/video_ira/001_Никольская/001_никольская.mp4
+[01:48:57.522]   cache_data provided: True
+[01:48:57.522] 
+============================================================
+[01:48:57.522] 🔍 [TIMELINE] SignalTimelineWindow.__init__ START
+[01:48:57.522] ============================================================
+[01:48:57.522]   - video_path: G:/iven/2/Yandex.Disk/0_Проекты/video_ira/001_Никольская/001_никольская.mp4
+[01:48:57.523]   - cache_data provided: True
+[01:48:57.523]   - cache_data type: <class 'dict'>
+[01:48:57.523]   - cache_data keys: None
+[01:48:57.523]   ✓ Using provided cache_data
+[01:48:57.523] 
+  📊 FINAL CACHE DATA STATE:
+[01:48:57.523]   - self.cache_data is None? False
+[01:48:57.524]   - video_duration from cache: 0
+[01:48:57.524]   - Attempting to get duration from video file...
+[01:48:57.554]   - Got video duration from file: 814.6s
+[01:48:57.555] 
+🔍 [TIMELINE] get_cache_instance
+[01:48:57.556]   - Cache directory contains 0 cache files:
+[01:48:57.556]   - cache instance: True
+[01:48:57.556] 
+  📊 EXTRACTED INFO:
+[01:48:57.557]   - action_types: []
+[01:48:57.557]   - object_classes: []
+[01:48:57.557]   - waveform loaded: False, length: 0
+[01:48:57.557] 
+  🎨 Initializing UI...
+[01:48:57.558] 🎵 init_ui: Creating scene with waveform data (0 points)
+[01:48:57.725] ✅ Live overlay loaded (0 detections)
+[01:48:57.741] ✅ Precomp overlay manager ready
+[01:48:57.752] ⚠️ No transcript file found next to video
+[01:48:57.781]   ⚠️ No cached waveform or empty waveform, starting extraction...
+[01:48:57.905] ✓ Video contains audio stream
+[01:48:57.906] 🎵 [thread] Starting waveform extraction...
+[01:48:57.906] 
+============================================================
+[01:48:57.907] ✅ [TIMELINE] SignalTimelineWindow.__init__ COMPLETE
+[01:48:57.907] ============================================================
+
+[01:49:06.625] ✅ [thread] extract_waveform() returned list len=2001 first=(-0.79547119140625, 0.816986083984375)
+[01:54:00.668] SignalTimelineWindow.__init__ CALLED with video_path=G:/iven/2/Yandex.Disk/0_Проекты/video_ira/001_Никольская/001_никольская.mp4
+[01:54:00.668]   cache_data provided: True
+[01:54:00.669] 
+============================================================
+[01:54:00.669] 🔍 [TIMELINE] SignalTimelineWindow.__init__ START
+[01:54:00.669] ============================================================
+[01:54:00.669]   - video_path: G:/iven/2/Yandex.Disk/0_Проекты/video_ira/001_Никольская/001_никольская.mp4
+[01:54:00.669]   - cache_data provided: True
+[01:54:00.670]   - cache_data type: <class 'dict'>
+[01:54:00.670]   - cache_data keys: None
+[01:54:00.670]   ✓ Using provided cache_data
+[01:54:00.670] 
+  📊 FINAL CACHE DATA STATE:
+[01:54:00.670]   - self.cache_data is None? False
+[01:54:00.671]   - video_duration from cache: 0
+[01:54:00.671]   - Attempting to get duration from video file...
+[01:54:00.699]   - Got video duration from file: 814.6s
+[01:54:00.699] 
+🔍 [TIMELINE] get_cache_instance
+[01:54:00.700]   - Cache directory contains 1 cache files:
+[01:54:00.701]     - 39b3ec412c115357b3cfeb69d9ff1d4068c8fb11216911c54983ddbe8079965a.7477a8e9c2ab26f8.cache.json (117.4 KB)
+[01:54:00.703]       Keys: dict_keys(['video_path', 'video_hash', 'cached_at', 'cache_version', 'cache_complete', 'analysis_signature', 'analysis_parameters', 'video_metadata', 'transcript', 'keyword_matches', 'objects', 'actions', 'scenes', 'motion_events', 'motion_peaks', 'pipeline_version', 'cache_flags', 'audio', 'audio_peaks', 'highlight_history', 'highlight_segments', 'highlight_metadata'])
+[01:54:00.703]       Video: G:\iven\2\Yandex.Disk\0_РџСЂРѕРµРєС‚С‹\video_ira\001_РќРёРєРѕР»СЊСЃРєР°СЏ\001_РЅРёРєРѕР»СЊСЃРєР°СЏ_temp_trimmed.mp4
+[01:54:00.703]   - cache instance: True
+[01:54:00.703] 
+  📊 EXTRACTED INFO:
+[01:54:00.704]   - action_types: []
+[01:54:00.704]   - object_classes: []
+[01:54:00.704]   - waveform loaded: False, length: 0
+[01:54:00.704] 
+  🎨 Initializing UI...
+[01:54:00.706] 🎵 init_ui: Creating scene with waveform data (0 points)
+[01:54:00.885] ✅ Live overlay loaded (0 detections)
+[01:54:00.896] ✅ Precomp overlay manager ready
+[01:54:00.901] ⚠️ No transcript file found next to video
+[01:54:00.930]   ⚠️ No cached waveform or empty waveform, starting extraction...
+[01:54:01.007] ✓ Video contains audio stream
+[01:54:01.007] 🎵 [thread] Starting waveform extraction...
+[01:54:01.007] 
+============================================================
+[01:54:01.008] ✅ [TIMELINE] SignalTimelineWindow.__init__ COMPLETE
+[01:54:01.008] ============================================================
+
+[01:54:01.844] ✅ [thread] extract_waveform() returned list len=2001 first=(-0.79547119140625, 0.816986083984375)
