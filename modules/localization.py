@@ -4,6 +4,7 @@ Supports English and Russian with auto-detection from system locale.
 """
 
 import locale
+import os
 import sys
 from typing import Dict
 
@@ -367,6 +368,11 @@ class Translator:
     def _detect_language(self) -> str:
         """Detect language from system locale."""
         try:
+            # Check environment variable first (for testing)
+            env_lang = os.environ.get("VIDEO_HIGHLIGHTER_LANG", "").lower()
+            if env_lang in ("ru", "en"):
+                return env_lang
+            
             # Get system locale
             system_locale = locale.getlocale()[0] or ""
             

@@ -780,7 +780,7 @@ class VideoHighlighterGUI(QWidget):
         self.download_pattern_input = QLineEdit()
         self.download_pattern_input.setText(self.config_data.get("download", {}).get("link_pattern", "/video/"))
         self.download_pattern_input.setPlaceholderText("/video/")
-        self.download_pattern_input.setToolTip("Pattern to match in video links (e.g., /video/, /watch/)")
+        self.download_pattern_input.setToolTip(self._t("pattern_tooltip"))
         pattern_layout.addWidget(self.download_pattern_input)
         download_form.addLayout(pattern_layout)
 
@@ -3412,20 +3412,35 @@ class VideoHighlighterGUI(QWidget):
         # Update window title
         self.setWindowTitle(t("window_title"))
         
-        # Update all groupboxes, labels, buttons etc.
-        # File picker
-        self.file_list.parentWidget().setTitle(t("input_videos"))
-        
-        # Time range
-        self.time_range_group.setTitle(t("processing_time_range"))
-        
-        # Progress
-        self.progress_group.setTitle(t("progress"))
-        
-        # Language
-        self.lang_combo.currentIndexChanged.emit(self.lang_combo.currentIndex())
+        # Recursively update all QLabel, QPushButton, QGroupBox, QCheckBox text
+        self._update_widget_texts(self)
         
         self.append_log(f"🌐 Language changed to: {lang_name}")
+
+    def _update_widget_texts(self, parent):
+        """Recursively update text on all child widgets."""
+        from PySide6.QtWidgets import QLabel, QPushButton, QGroupBox, QCheckBox, QListWidget, QWidget
+        
+        for child in parent.findChildren(QWidget):
+            if isinstance(child, QLabel) and child.text() and not child.objectName():
+                # Only translate if it's a UI label (not file paths, logs, etc.)
+                new_text = t(child.text())
+                if new_text != child.text():
+                    child.setText(new_text)
+            elif isinstance(child, QPushButton):
+                # Don't translate emoji buttons
+                if child.text() and not child.text().startswith(("🌐", "📊", "🔍", "🔄", "🗑", "▶", "⏸", "📦")):
+                    new_text = t(child.text())
+                    if new_text != child.text():
+                        child.setText(new_text)
+            elif isinstance(child, QGroupBox):
+                new_text = t(child.title())
+                if new_text != child.title():
+                    child.setTitle(new_text)
+            elif isinstance(child, QCheckBox):
+                new_text = t(child.text())
+                if new_text != child.text():
+                    child.setText(new_text)
 
     def open_timeline_viewer(self):
         """Open timeline viewer for the selected video"""
