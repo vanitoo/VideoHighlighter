@@ -48,14 +48,14 @@ keywords:
   transcript_file: transcript.txt
   interesting: []
 transcript:
-  enabled: false
+  enabled: true
   model: base
-  source_lang: en
+  source_lang: auto
   search_keywords: []
 subtitles:
-  enabled: false
-  source_lang: en
-  target_lang: pl
+  enabled: true
+  source_lang: ru
+  target_lang: ru
 advanced:
   frame_skip: 1
   object_frame_skip: 10
@@ -66,8 +66,8 @@ advanced:
   r3d_model: r3d_18
   action_models: intel_only
 visualization:
-  draw_object_boxes: false
-  draw_action_labels: false
+  draw_object_boxes: true
+  draw_action_labels: true
 avoid:
   face_recognition_enabled: true
 ui:

@@ -19,6 +19,7 @@ from PySide6.QtCore import Qt, QThread, Signal, QTimer, QMetaObject, Q_ARG, Slot
 from downloader import download_videos_with_immediate_processing, extract_video_links, DownloadError, reset_duration_method_cache
 from llm.llm_chat_widget import LLMChatWidget
 from modules.video_cache import VideoAnalysisCache, CachedAnalysisData, build_analysis_cache_params
+from modules.localization import translator, t
 
 try:
     import openvino  # registers OpenVINO's DLL dir on Windows
@@ -42,7 +43,7 @@ class LabelSelectorDialog(QDialog):
 
     def __init__(self, title, labels, current_selection=None, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(title)
+        self.setWindowTitle(t("load_labels"))
         self.setMinimumSize(480, 520)
         self.all_labels = sorted(labels)
         self.current_selection = set(current_selection or [])
@@ -50,14 +51,14 @@ class LabelSelectorDialog(QDialog):
         layout = QVBoxLayout()
 
         search_layout = QHBoxLayout()
-        search_layout.addWidget(QLabel("Filter:"))
+        search_layout.addWidget(QLabel(t("filter") + ":"))
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Type to filter labels...")
+        self.search_input.setPlaceholderText(t("filter") + "...")
         self.search_input.textChanged.connect(self._filter_labels)
         search_layout.addWidget(self.search_input)
         layout.addLayout(search_layout)
 
-        self.info_label = QLabel(f"{len(self.all_labels)} labels available")
+        self.info_label = QLabel(f"{len(self.all_labels)} {t('labels_available')}")
         self.info_label.setStyleSheet("color: #666; font-size: 9pt;")
         layout.addWidget(self.info_label)
 
@@ -67,16 +68,16 @@ class LabelSelectorDialog(QDialog):
         layout.addWidget(self.label_list)
 
         quick_layout = QHBoxLayout()
-        select_all_btn = QPushButton("Select All Visible")
+        select_all_btn = QPushButton(t("select_all_visible"))
         select_all_btn.clicked.connect(self._select_all_visible)
-        deselect_all_btn = QPushButton("Deselect All")
+        deselect_all_btn = QPushButton(t("deselect_all"))
         deselect_all_btn.clicked.connect(self._deselect_all)
         quick_layout.addWidget(select_all_btn)
         quick_layout.addWidget(deselect_all_btn)
         quick_layout.addStretch()
         layout.addLayout(quick_layout)
 
-        self.selection_label = QLabel("0 selected")
+        self.selection_label = QLabel(f"0 {t('selected')}")
         self.selection_label.setStyleSheet("font-weight: bold; color: #2196F3;")
         layout.addWidget(self.selection_label)
         self.label_list.itemSelectionChanged.connect(self._update_selection_count)
@@ -126,7 +127,7 @@ class LabelSelectorDialog(QDialog):
 class NoAnalysisWarningDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("No Analysis Data")
+        self.setWindowTitle(t("no_analysis_title"))
         self.setFixedWidth(420)
         
         layout = QVBoxLayout()
@@ -136,23 +137,17 @@ class NoAnalysisWarningDialog(QDialog):
         icon_label.setAlignment(Qt.AlignCenter)
         layout.addWidget(icon_label)
         
-        msg = QLabel(
-            "No analysis cache found for this video.\n\n"
-            "You can still use the timeline viewer to seek through\n"
-            "the video and chat with the LLM — but motion, audio,\n"
-            "object and action signals won't be available.\n\n"
-            "Run the pipeline first to get full signal data."
-        )
+        msg = QLabel(t("no_analysis_msg"))
         msg.setWordWrap(True)
         msg.setAlignment(Qt.AlignCenter)
         layout.addWidget(msg)
         
-        self.dont_show_chk = QCheckBox("Don't show this warning again")
+        self.dont_show_chk = QCheckBox(t("dont_show_again"))
         self.dont_show_chk.setStyleSheet("color: #666;")
         layout.addWidget(self.dont_show_chk)
         
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        buttons.button(QDialogButtonBox.Ok).setText("Open Anyway")
+        buttons.button(QDialogButtonBox.Ok).setText(t("open_anyway"))
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
@@ -247,7 +242,7 @@ class DownloadWorker(QThread):
     def run(self):
         try:
             self._is_running = True
-            self.log.emit(f"🚀 Starting download from: {self.url}")
+            self.log.emit(f"{t('starting_download')} {self.url}")
 
             def log_fn(message):
                 self.log.emit(message)
@@ -298,7 +293,7 @@ class DownloadWorker(QThread):
                     self._download_results.append(result)
 
             if self._cancelled:
-                self.log.emit("⏹️ Download was cancelled")
+                self.log.emit(f"{t('cancelled')}")
                 self.cancelled.emit()
                 self.finished.emit([])
             else:
@@ -369,7 +364,7 @@ class Worker(QThread):
             if isinstance(self.video_path, list):
                 self.log.emit(f"🚀 Starting batch processing of {len(self.video_path)} videos...")
             else:
-                self.log.emit("🚀 Starting video highlighter pipeline...")
+                self.log.emit(f"{t('starting_pipeline')}")
 
             output = run_highlighter(
                 self.video_path,
@@ -380,7 +375,7 @@ class Worker(QThread):
             )
 
             if self._cancel_flag.is_set():
-                self.log.emit("⏹️ Pipeline was cancelled")
+                self.log.emit(f"{t('cancelled')}")
                 self.cancelled.emit()
                 self.finished.emit("")
             else:
@@ -562,14 +557,14 @@ class RangeSlider(QWidget):
 class VideoHighlighterGUI(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Video Highlighter - Highlights & Subtitles")
+        self.setWindowTitle(t("window_title"))
         screen = QApplication.primaryScreen().availableGeometry()
         w = min(1000, screen.width() - 20)
         h = min(800, screen.height() - 20)
         self.resize(w, h)
         self.setMinimumSize(600, 400)
         self.move(screen.x() + (screen.width() - w) // 2, screen.y())
-
+        
         
         self.worker = None
 
@@ -580,17 +575,29 @@ class VideoHighlighterGUI(QWidget):
         # Store video duration
         self.current_video_duration = 0
 
+        # ── Language switcher row ───────────────────────────────────────
+        lang_row = QHBoxLayout()
+        lang_row.addWidget(QLabel(t("language") + ":"))
+        self.lang_combo = QComboBox()
+        for code, name in translator.get_available_languages():
+            self.lang_combo.addItem(name, code)
+        self.lang_combo.setCurrentText(translator.get_language_name())
+        self.lang_combo.currentTextChanged.connect(self._on_language_changed)
+        lang_row.addWidget(self.lang_combo)
+        lang_row.addStretch()
+        layout.addLayout(lang_row)
+
         # --- File picker ---
-        file_group = QGroupBox("Input Videos")
+        file_group = QGroupBox(t("input_videos"))
         file_layout = QVBoxLayout()
 
         # Buttons row
         btn_layout = QHBoxLayout()
-        self.browse_btn = QPushButton("Add Videos")
+        self.browse_btn = QPushButton(t("add_videos"))
         self.browse_btn.clicked.connect(self.browse_files)
-        self.remove_btn = QPushButton("Remove Selected")
+        self.remove_btn = QPushButton(t("remove_selected"))
         self.remove_btn.clicked.connect(self.remove_selected_file)
-        self.clear_btn = QPushButton("Clear All")
+        self.clear_btn = QPushButton(t("clear_all"))
         self.clear_btn.clicked.connect(self.clear_files)
         
         btn_layout.addWidget(self.browse_btn)
@@ -616,9 +623,9 @@ class VideoHighlighterGUI(QWidget):
         # --- Output filename ---
         out_layout = QHBoxLayout()
         self.output_input = QLineEdit(self.config_data.get("highlights", {}).get("output", "highlight.mp4"))
-        out_layout.addWidget(QLabel("Output base name:"))
+        out_layout.addWidget(QLabel(t("output_base_name") + ":"))
         out_layout.addWidget(self.output_input)
-        info_label = QLabel("ℹ️ For multiple files, '_highlight' will be appended to each filename")
+        info_label = QLabel(t("output_info"))
         info_label.setStyleSheet("color: #666; font-size: 9pt;")
         out_layout.addWidget(info_label)
         layout.addLayout(out_layout)
@@ -627,17 +634,17 @@ class VideoHighlighterGUI(QWidget):
         scoring_cfg = self.config_data.get("scoring", {})
 
         # --- Time Range Selection with Slider ---
-        time_range_group = QGroupBox("Processing Time Range")
+        self.time_range_group = QGroupBox(t("processing_time_range"))
         time_range_layout = QVBoxLayout()
 
         # Enable/disable checkbox
-        self.use_time_range_chk = QCheckBox("Process only specific time range")
+        self.use_time_range_chk = QCheckBox(t("process_specific_range"))
         self.use_time_range_chk.setChecked(highlights_cfg.get("use_time_range", False))
         self.use_time_range_chk.toggled.connect(self.on_time_range_toggle)
         time_range_layout.addWidget(self.use_time_range_chk)
 
         # Video duration label
-        self.video_duration_label = QLabel("Set time range in percentages (0-100%) - loads actual times when video is selected")
+        self.video_duration_label = QLabel(t("time_range_info"))
         self.video_duration_label.setStyleSheet("color: #666; font-style: italic;")
         time_range_layout.addWidget(self.video_duration_label)
 
@@ -648,7 +655,7 @@ class VideoHighlighterGUI(QWidget):
 
         # Range slider (single bar with two handles)
         range_row = QHBoxLayout()
-        range_row.addWidget(QLabel("Start:"))
+        range_row.addWidget(QLabel(t("start") + ":"))
         self.range_slider = RangeSlider(0, 100)
         self.range_slider.setStart(highlights_cfg.get("range_start_pct", 0))
         self.range_slider.setEnd(highlights_cfg.get("range_end_pct", 100))
@@ -656,7 +663,7 @@ class VideoHighlighterGUI(QWidget):
         self.range_slider.startChanged.connect(self.on_slider_changed)
         self.range_slider.endChanged.connect(self.on_slider_changed)
         range_row.addWidget(self.range_slider, stretch=1)
-        range_row.addWidget(QLabel("End"))
+        range_row.addWidget(QLabel(t("end")))
 
         self.start_time_label = QLabel("0%")
         self.start_time_label.setMinimumWidth(80)
@@ -678,26 +685,26 @@ class VideoHighlighterGUI(QWidget):
         time_range_layout.addWidget(slider_container)
 
         # Selection info
-        self.selection_info_label = QLabel("Selection: Full video")
+        self.selection_info_label = QLabel(t("selection_full_video"))
         self.selection_info_label.setStyleSheet("color: #4CAF50; font-weight: bold; font-size: 10pt;")
         time_range_layout.addWidget(self.selection_info_label)
 
         # Quick presets
         presets_layout = QHBoxLayout()
-        presets_layout.addWidget(QLabel("Quick presets:"))
-        self.first_5min_btn = QPushButton("First 5min")
+        presets_layout.addWidget(QLabel(t("quick_presets") + ":"))
+        self.first_5min_btn = QPushButton(t("first_5min"))
         self.first_5min_btn.clicked.connect(lambda: self.set_slider_preset("first_5"))
         self.first_5min_btn.setEnabled(False)
-        self.last_5min_btn = QPushButton("Last 5min")
+        self.last_5min_btn = QPushButton(t("last_5min"))
         self.last_5min_btn.clicked.connect(lambda: self.set_slider_preset("last_5"))
         self.last_5min_btn.setEnabled(False)
-        self.last_10min_btn = QPushButton("Last 10min")
+        self.last_10min_btn = QPushButton(t("last_10min"))
         self.last_10min_btn.clicked.connect(lambda: self.set_slider_preset("last_10"))
         self.last_10min_btn.setEnabled(False)
-        self.middle_btn = QPushButton("Middle")
+        self.middle_btn = QPushButton(t("middle"))
         self.middle_btn.clicked.connect(lambda: self.set_slider_preset("middle"))
         self.middle_btn.setEnabled(False)
-        self.full_video_btn = QPushButton("Full video")
+        self.full_video_btn = QPushButton(t("full_video"))
         self.full_video_btn.clicked.connect(lambda: self.set_slider_preset("full"))
         self.full_video_btn.setEnabled(False)
         presets_layout.addWidget(self.first_5min_btn)
@@ -708,8 +715,8 @@ class VideoHighlighterGUI(QWidget):
         presets_layout.addStretch()
         time_range_layout.addLayout(presets_layout)
 
-        time_range_group.setLayout(time_range_layout)
-        layout.addWidget(time_range_group)
+        self.time_range_group.setLayout(time_range_layout)
+        layout.addWidget(self.time_range_group)
 
         # Enable slider if checkbox was already checked from config
         if self.use_time_range_chk.isChecked():
@@ -725,7 +732,7 @@ class VideoHighlighterGUI(QWidget):
                 self.update_video_duration(first_path)
 
         # --- Progress Section (hidden when idle) ---
-        self.progress_group = QGroupBox("Progress")
+        self.progress_group = QGroupBox(t("progress"))
         progress_layout = QVBoxLayout()
         progress_layout.setContentsMargins(4, 4, 4, 4)
         progress_layout.setSpacing(2)
@@ -740,7 +747,7 @@ class VideoHighlighterGUI(QWidget):
         self.process_progress_bar.setRange(0, 100)
         progress_layout.addWidget(self.process_progress_bar)
 
-        self.task_label = QLabel("Ready")
+        self.task_label = QLabel(t("ready"))
         self.task_label.setStyleSheet("color: #666; font-weight: bold;")
         progress_layout.addWidget(self.task_label)
 
@@ -755,12 +762,12 @@ class VideoHighlighterGUI(QWidget):
         download_tab = QWidget()
         download_layout = QVBoxLayout()
 
-        download_group = QGroupBox("Download Videos from Website")
+        download_group = QGroupBox(t("download_videos"))
         download_form = QVBoxLayout()
 
         # URL input
         url_layout = QHBoxLayout()
-        url_layout.addWidget(QLabel("Page URL:"))
+        url_layout.addWidget(QLabel(t("page_url") + ":"))
         self.download_url_input = QLineEdit()
         self.download_url_input.setText(self.config_data.get("download", {}).get("last_url", ""))
         self.download_url_input.setPlaceholderText("https://example.com/videos")
@@ -769,7 +776,7 @@ class VideoHighlighterGUI(QWidget):
 
         # Pattern input
         pattern_layout = QHBoxLayout()
-        pattern_layout.addWidget(QLabel("Link pattern:"))
+        pattern_layout.addWidget(QLabel(t("link_pattern") + ":"))
         self.download_pattern_input = QLineEdit()
         self.download_pattern_input.setText(self.config_data.get("download", {}).get("link_pattern", "/video/"))
         self.download_pattern_input.setPlaceholderText("/video/")
@@ -779,35 +786,35 @@ class VideoHighlighterGUI(QWidget):
 
         # Save directory
         save_dir_layout = QHBoxLayout()
-        save_dir_layout.addWidget(QLabel("Save directory:"))
+        save_dir_layout.addWidget(QLabel(t("save_directory") + ":"))
         self.download_save_dir_input = QLineEdit()
         self.download_save_dir_input.setText(self.config_data.get("download", {}).get("save_dir", "D:\\movies"))
         save_dir_layout.addWidget(self.download_save_dir_input)
-        self.browse_save_dir_btn = QPushButton("Browse...")
+        self.browse_save_dir_btn = QPushButton(t("browse"))
         self.browse_save_dir_btn.clicked.connect(self.browse_save_directory)
         save_dir_layout.addWidget(self.browse_save_dir_btn)
         download_form.addLayout(save_dir_layout)
 
         # Time range selection for downloads
-        dl_time_range_group = QGroupBox("Download Time Range (Optional)")
+        dl_time_range_group = QGroupBox(t("download_time_range"))
         dl_time_range_layout = QVBoxLayout()
 
         # Full download checkbox (default: unchecked = download only time range)
-        self.download_full_chk = QCheckBox("Download full video")
+        self.download_full_chk = QCheckBox(t("download_full_video"))
         self.download_full_chk.setChecked(False)  # Default: download only time range
         self.download_full_chk.setToolTip("When unchecked, only downloads the specified time range")
         dl_time_range_layout.addWidget(self.download_full_chk)
 
         # Time range inputs
         time_input_layout = QHBoxLayout()
-        time_input_layout.addWidget(QLabel("Start time (seconds):"))
+        time_input_layout.addWidget(QLabel(t("start_time") + ":"))
         self.download_start_input = QSpinBox()
         self.download_start_input.setRange(0, 86400)  # 0 to 24 hours
         self.download_start_input.setValue(0)
         self.download_start_input.setEnabled(True)  # Enabled by default
         time_input_layout.addWidget(self.download_start_input)
 
-        time_input_layout.addWidget(QLabel("End time (seconds):"))
+        time_input_layout.addWidget(QLabel(t("end_time") + ":"))
         self.download_end_input = QSpinBox()
         self.download_end_input.setRange(1, 86400)  # 1 second to 24 hours
         self.download_end_input.setValue(300)  # Default: 5 minutes
@@ -817,7 +824,7 @@ class VideoHighlighterGUI(QWidget):
         dl_time_range_layout.addLayout(time_input_layout)
 
         # Duration label
-        self.download_duration_label = QLabel("Duration: 300s (5:00)")
+        self.download_duration_label = QLabel(t("duration") + " 300s (5:00)")
         dl_time_range_layout.addWidget(self.download_duration_label)
 
         # Connect signals
@@ -833,13 +840,13 @@ class VideoHighlighterGUI(QWidget):
         download_time_layout = QVBoxLayout()
 
         # Checkbox to use the same time range as processing
-        self.use_same_time_range_chk = QCheckBox("Use same time range as processing")
+        self.use_same_time_range_chk = QCheckBox(t("use_same_time_range"))
         self.use_same_time_range_chk.setChecked(False)  # Default: download full
         self.use_same_time_range_chk.setToolTip("When checked, downloads only the time range specified in 'Processing Time Range' section")
         download_time_layout.addWidget(self.use_same_time_range_chk)
 
         # Info label
-        download_time_info = QLabel("ℹ️ Unchecked: Download full videos\n   Checked: Download only selected time range")
+        download_time_info = QLabel(t("download_time_info"))
         download_time_info.setStyleSheet("color: #666; font-size: 9pt; font-style: italic;")
         download_time_layout.addWidget(download_time_info)
 
@@ -847,25 +854,25 @@ class VideoHighlighterGUI(QWidget):
         download_form.addWidget(download_time_group)
 
         # Options
-        self.auto_add_downloaded_chk = QCheckBox("Automatically add downloaded videos to file list")
+        self.auto_add_downloaded_chk = QCheckBox(t("auto_add_downloaded"))
         self.auto_add_downloaded_chk.setChecked(self.config_data.get("download", {}).get("auto_add", True))
         download_form.addWidget(self.auto_add_downloaded_chk)
 
         # Auto-process checkbox
-        self.auto_process_chk = QCheckBox("Automatically start processing after download completes")
+        self.auto_process_chk = QCheckBox(t("auto_process"))
         self.auto_process_chk.setChecked(self.config_data.get("download", {}).get("auto_process", False))
         self.auto_process_chk.setToolTip("When enabled, the highlighter pipeline will start automatically after videos are downloaded")
         download_form.addWidget(self.auto_process_chk)
 
         # Immediate processing checkbox
-        self.immediate_processing_chk = QCheckBox("Process each video immediately after download")
+        self.immediate_processing_chk = QCheckBox(t("immediate_processing"))
         self.immediate_processing_chk.setChecked(self.config_data.get("download", {}).get("immediate_processing", True))
         self.immediate_processing_chk.setToolTip("Process videos as soon as they're downloaded, instead of waiting for all downloads to complete")
         download_form.addWidget(self.immediate_processing_chk)
 
         # Concurrent downloads spinner
         concurrent_layout = QHBoxLayout()
-        concurrent_layout.addWidget(QLabel("Concurrent downloads:"))
+        concurrent_layout.addWidget(QLabel(t("concurrent_downloads") + ":"))
         self.concurrent_spinbox = QSpinBox()
         self.concurrent_spinbox.setRange(1, 10)
         self.concurrent_spinbox.setValue(self.config_data.get("download", {}).get("concurrent_downloads", 1))
@@ -880,7 +887,7 @@ class VideoHighlighterGUI(QWidget):
 
         # Download button
         download_btn_layout = QHBoxLayout()
-        self.download_btn = QPushButton("🌐 Download Videos")
+        self.download_btn = QPushButton(t("download_videos_btn"))
         self.download_btn.setStyleSheet("QPushButton { background-color: #2196F3; color: white; font-weight: bold; padding: 8px; }")
         self.download_btn.clicked.connect(self.start_download)
         download_btn_layout.addStretch()
@@ -888,13 +895,13 @@ class VideoHighlighterGUI(QWidget):
         download_form.addLayout(download_btn_layout)
 
         # Combine highlights
-        self.auto_combine_chk = QCheckBox("Automatically combine all highlights into one video")
+        self.auto_combine_chk = QCheckBox(t("auto_combine"))
         self.auto_combine_chk.setChecked(self.config_data.get("download", {}).get("auto_combine", True))
         self.auto_combine_chk.setToolTip("When enabled, all individual highlights will be combined into one master video")
         download_form.addWidget(self.auto_combine_chk)
         
         # Info label
-        info_label = QLabel("ℹ️ Requires yt-dlp: pip install yt-dlp")
+        info_label = QLabel(t("yt_dlp_info"))
         info_label.setStyleSheet("color: #666; font-size: 9pt; font-style: italic;")
         download_form.addWidget(info_label)
         
@@ -910,14 +917,14 @@ class VideoHighlighterGUI(QWidget):
         download_scroll.setWidget(download_scroll_content)
         download_tab.setLayout(QVBoxLayout())
         download_tab.layout().addWidget(download_scroll)
-        tabs.addTab(download_tab, "Download")
+        tabs.addTab(download_tab, t("download_tab"))
 
         # --- Tab 1: Basic Settings ---
         basic_tab = QWidget()
         basic_layout = QVBoxLayout()
 
         # ── Group 1: Scoring Points ──
-        points_box = QGroupBox("Scoring Points")
+        points_box = QGroupBox(t("scoring_points"))
         points_layout = QFormLayout()
 
         self.spin_scene_points = QSpinBox(); self.spin_scene_points.setRange(0,100); self.spin_scene_points.setValue(scoring_cfg.get("scene_points", 0))
@@ -944,20 +951,20 @@ class VideoHighlighterGUI(QWidget):
         self.spin_action = QSpinBox(); self.spin_action.setRange(0,1000); self.spin_action.setValue(scoring_cfg.get("action_points", 10))
         self.spin_action.setToolTip("Points when a configured action is recognized (e.g. punching, jumping, dancing)")
 
-        points_layout.addRow("Scene points:", self.spin_scene_points)
-        points_layout.addRow("Motion event points:", self.spin_motion_event_points)
-        points_layout.addRow("Motion peak points:", self.spin_motion_peak)
-        points_layout.addRow("Audio peak points:", self.spin_audio_peak)
-        points_layout.addRow("Keyword points (keywords in transcript):", self.spin_keyword_points)
-        points_layout.addRow("Transcript points (all words):", self.spin_transcript_points)
-        points_layout.addRow("Object points:", self.spin_object)
-        points_layout.addRow("Action points:", self.spin_action)
+        points_layout.addRow(t("scene_points"), self.spin_scene_points)
+        points_layout.addRow(t("motion_event_points"), self.spin_motion_event_points)
+        points_layout.addRow(t("motion_peak_points"), self.spin_motion_peak)
+        points_layout.addRow(t("audio_peak_points"), self.spin_audio_peak)
+        points_layout.addRow(t("keyword_points"), self.spin_keyword_points)
+        points_layout.addRow(t("transcript_points"), self.spin_transcript_points)
+        points_layout.addRow(t("object_points"), self.spin_object)
+        points_layout.addRow(t("action_points"), self.spin_action)
 
         points_box.setLayout(points_layout)
         basic_layout.addWidget(points_box)
 
         # ── Group 2: Duration & Cutting ──
-        duration_box = QGroupBox("Duration && Cutting")
+        duration_box = QGroupBox(t("duration_cutting"))
         duration_layout = QVBoxLayout()
 
         # Main duration controls (always visible)
@@ -967,9 +974,9 @@ class VideoHighlighterGUI(QWidget):
         self.spin_exact_duration = QSpinBox(); self.spin_exact_duration.setRange(0,3600); self.spin_exact_duration.setValue(highlights_cfg.get("exact_duration", 0))
         self.spin_clip_time = QSpinBox(); self.spin_clip_time.setRange(0,300); self.spin_clip_time.setValue(highlights_cfg.get("clip_time", 10))
 
-        duration_form.addRow("Max highlight duration (s):", self.spin_max_duration)
-        duration_form.addRow("Exact duration (s, 0 = off):", self.spin_exact_duration)
-        duration_form.addRow("Clip time (s, 0 = auto):", self.spin_clip_time)
+        duration_form.addRow(t("max_highlight_duration"), self.spin_max_duration)
+        duration_form.addRow(t("exact_duration"), self.spin_exact_duration)
+        duration_form.addRow(t("clip_time"), self.spin_clip_time)
 
         duration_layout.addLayout(duration_form)
 
@@ -980,7 +987,7 @@ class VideoHighlighterGUI(QWidget):
         duration_layout.addWidget(self.auto_seg_info_label)
 
         # ── Auto-segmentation controls (shown only when clip_time = 0) ──
-        self.auto_seg_group = QGroupBox("Auto-Segmentation Settings")
+        self.auto_seg_group = QGroupBox(t("auto_segmentation"))
         auto_seg_layout = QFormLayout()
 
         self.spin_auto_min_clip = QSpinBox()
@@ -1001,9 +1008,9 @@ class VideoHighlighterGUI(QWidget):
         self.spin_auto_merge_gap.setSuffix(" s")
         self.spin_auto_merge_gap.setToolTip("Merge interest regions that are within this gap into one clip")
 
-        auto_seg_layout.addRow("Min clip length:", self.spin_auto_min_clip)
-        auto_seg_layout.addRow("Max clip length:", self.spin_auto_max_clip)
-        auto_seg_layout.addRow("Merge gap:", self.spin_auto_merge_gap)
+        auto_seg_layout.addRow(t("min_clip_length"), self.spin_auto_min_clip)
+        auto_seg_layout.addRow(t("max_clip_length"), self.spin_auto_max_clip)
+        auto_seg_layout.addRow(t("merge_gap"), self.spin_auto_merge_gap)
 
         self.auto_seg_group.setLayout(auto_seg_layout)
         duration_layout.addWidget(self.auto_seg_group)
@@ -1033,9 +1040,9 @@ class VideoHighlighterGUI(QWidget):
         obj_layout = QHBoxLayout()
         self.objects_input = QLineEdit(",".join(self.config_data.get("objects", {}).get("interesting", [])))
         self.objects_input.setPlaceholderText("person,glass,wine glass,sports ball")
-        obj_layout.addWidget(QLabel("Object detection:"))
+        obj_layout.addWidget(QLabel(t("object_detection") + ":"))
         obj_layout.addWidget(self.objects_input)
-        self.load_objects_btn = QPushButton("Load Labels")
+        self.load_objects_btn = QPushButton(t("load_labels"))
         self.load_objects_btn.setToolTip("Load labels from yolo_objects_labels.json")
         self.load_objects_btn.clicked.connect(self.open_object_label_selector)
         obj_layout.addWidget(self.load_objects_btn)
@@ -1045,21 +1052,21 @@ class VideoHighlighterGUI(QWidget):
         action_kw_layout = QHBoxLayout()
         self.actions_input = QLineEdit(",".join(self.config_data.get("actions", {}).get("interesting", [])))
         self.actions_input.setPlaceholderText("high jump, high kick, archery")
-        action_kw_layout.addWidget(QLabel("Action keywords:"))
+        action_kw_layout.addWidget(QLabel(t("action_keywords") + ":"))
         action_kw_layout.addWidget(self.actions_input)
-        self.load_actions_btn = QPushButton("Load Labels")
+        self.load_actions_btn = QPushButton(t("load_labels"))
         self.load_actions_btn.setToolTip("Load labels from kinetics_400_labels.json (or custom Intel model)")
         self.load_actions_btn.clicked.connect(self.open_action_label_selector)
         action_kw_layout.addWidget(self.load_actions_btn)
         basic_layout.addLayout(action_kw_layout)
 
         # Conditional action scoring checkbox
-        self.actions_require_objects_chk = QCheckBox("Only score actions when objects detected")
+        self.actions_require_objects_chk = QCheckBox(t("actions_require_objects"))
         self.actions_require_objects_chk.setChecked(self.config_data.get("actions", {}).get("require_objects", False))
         self.actions_require_objects_chk.setToolTip("Actions will only add points if objects are also detected in that timeframe")
         basic_layout.addWidget(self.actions_require_objects_chk)
 
-        self.skip_highlights_chk = QCheckBox("Skip highlights")
+        self.skip_highlights_chk = QCheckBox(t("skip_highlights"))
         self.skip_highlights_chk.setChecked(highlights_cfg.get("skip_highlights", False))
         basic_layout.addWidget(self.skip_highlights_chk)
 
@@ -1070,7 +1077,7 @@ class VideoHighlighterGUI(QWidget):
         basic_scroll_content.setLayout(basic_layout)
         basic_scroll.setWidget(basic_scroll_content)
 
-        tabs.addTab(basic_scroll, "Basic Settings")
+        tabs.addTab(basic_scroll, t("basic_settings"))
 
         # --- Tab 2: Transcript & Subtitles ---
         transcript_cfg = self.config_data.get("transcript", {})
@@ -1079,53 +1086,53 @@ class VideoHighlighterGUI(QWidget):
         transcript_tab = QWidget()
         transcript_layout = QVBoxLayout()
 
-        transcript_group = QGroupBox("Transcript Settings")
+        transcript_group = QGroupBox(t("transcript_settings"))
         transcript_form = QFormLayout()
-        self.transcript_checkbox = QCheckBox("Enable transcript processing")
+        self.transcript_checkbox = QCheckBox(t("enable_transcript"))
         self.transcript_checkbox.setChecked(transcript_cfg.get("enabled", False))
         self.transcript_checkbox.toggled.connect(self.on_transcript_toggle)
-        transcript_form.addRow("Use transcript:", self.transcript_checkbox)
+        transcript_form.addRow(t("enable_transcript"), self.transcript_checkbox)
 
         # Source language for transcription
         self.transcript_source_lang = QComboBox()
         self.transcript_source_lang.addItems(["auto","en","pl","es","fr","de","it","pt","ru","ja","ko","zh"])
         self.transcript_source_lang.setCurrentText(transcript_cfg.get("source_lang", "en"))
         self.transcript_source_lang.setEnabled(transcript_cfg.get("enabled", False))
-        transcript_form.addRow("Source language:", self.transcript_source_lang)
+        transcript_form.addRow(t("source_language"), self.transcript_source_lang)
 
         self.transcript_model_combo = QComboBox()
         self.transcript_model_combo.addItems(["tiny","base","small","medium","large"])
         self.transcript_model_combo.setCurrentText(transcript_cfg.get("model", "base"))
         self.transcript_model_combo.setEnabled(transcript_cfg.get("enabled", False))
-        transcript_form.addRow("Whisper model:", self.transcript_model_combo)
+        transcript_form.addRow(t("whisper_model"), self.transcript_model_combo)
 
         self.search_keywords_input = QLineEdit(",".join(transcript_cfg.get("search_keywords", [])))
         self.search_keywords_input.setPlaceholderText("goal, score, win")
         self.search_keywords_input.setEnabled(transcript_cfg.get("enabled", False))
-        transcript_form.addRow("Search keywords:", self.search_keywords_input)
+        transcript_form.addRow(t("search_keywords"), self.search_keywords_input)
         transcript_group.setLayout(transcript_form)
         transcript_layout.addWidget(transcript_group)
 
-        subtitle_group = QGroupBox("Subtitle Settings")
+        subtitle_group = QGroupBox(t("subtitle_settings"))
         subtitle_form = QFormLayout()
-        self.subtitles_checkbox = QCheckBox("Generate subtitles (.srt)")
+        self.subtitles_checkbox = QCheckBox(t("create_subtitles"))
         self.subtitles_checkbox.setChecked(subtitles_cfg.get("enabled", False))
         self.subtitles_checkbox.toggled.connect(self.on_subtitles_toggle)
         # Disable subtitle checkbox if transcript is not enabled
         self.subtitles_checkbox.setEnabled(transcript_cfg.get("enabled", False))
-        subtitle_form.addRow("Create subtitles:", self.subtitles_checkbox)
+        subtitle_form.addRow(t("create_subtitles"), self.subtitles_checkbox)
 
         self.subtitle_source_lang = QComboBox()
         self.subtitle_source_lang.addItems(["en","pl","es","fr","de","it","pt","ru","ja","ko","zh"])
         self.subtitle_source_lang.setCurrentText(subtitles_cfg.get("source_lang", "en"))
         self.subtitle_source_lang.setEnabled(subtitles_cfg.get("enabled", False) and transcript_cfg.get("enabled", False))
-        subtitle_form.addRow("Source language:", self.subtitle_source_lang)
+        subtitle_form.addRow(t("source_language"), self.subtitle_source_lang)
 
         self.subtitle_target_lang = QComboBox()
         self.subtitle_target_lang.addItems(["en","pl","es","fr","de","it","pt","ru","ja","ko","zh"])
         self.subtitle_target_lang.setCurrentText(subtitles_cfg.get("target_lang", "pl"))
         self.subtitle_target_lang.setEnabled(subtitles_cfg.get("enabled", False) and transcript_cfg.get("enabled", False))
-        subtitle_form.addRow("Target language:", self.subtitle_target_lang)
+        subtitle_form.addRow(t("target_language"), self.subtitle_target_lang)
         subtitle_group.setLayout(subtitle_form)
         transcript_layout.addWidget(subtitle_group)
 
@@ -1136,7 +1143,7 @@ class VideoHighlighterGUI(QWidget):
         transcript_scroll_content.setLayout(transcript_layout)
         transcript_scroll.setWidget(transcript_scroll_content)
 
-        tabs.addTab(transcript_scroll, "Transcript && Subtitles")
+        tabs.addTab(transcript_scroll, t("transcript_subtitles"))
 
         # --- Tab 3: Advanced Tab ---
         advanced_cfg = self.config_data.get("advanced", {})
@@ -1146,7 +1153,7 @@ class VideoHighlighterGUI(QWidget):
         advanced_layout = QVBoxLayout()
 
         # ── Group 1: Motion Recognition ──
-        motion_box = QGroupBox("Motion Recognition")
+        motion_box = QGroupBox(t("motion_recognition"))
         motion_layout = QFormLayout()
 
         self.frame_skip_spin = QSpinBox()
@@ -1154,12 +1161,12 @@ class VideoHighlighterGUI(QWidget):
         self.frame_skip_spin.setValue(advanced_cfg.get("frame_skip", 5))
         self.frame_skip_spin.setToolTip("Analyze every Nth frame for motion detection (higher = faster, less precise)")
 
-        motion_layout.addRow("Frame skip:", self.frame_skip_spin)
+        motion_layout.addRow(t("frame_skip"), self.frame_skip_spin)
         motion_box.setLayout(motion_layout)
         advanced_layout.addWidget(motion_box)
 
         # ── Group 2: Object Recognition ──
-        object_box = QGroupBox("Object Recognition")
+        object_box = QGroupBox(t("object_recognition"))
         object_layout = QFormLayout()
 
         self.obj_frame_skip_spin = QSpinBox()
@@ -1211,16 +1218,16 @@ class VideoHighlighterGUI(QWidget):
         self.obj_confidence_spin.setValue(int(self.config_data.get("objects", {}).get("confidence", 30)))
         self.obj_confidence_spin.setToolTip("Minimum confidence threshold for object detection (lower = more detections, more false positives)")
 
-        object_layout.addRow("Frame skip:", self.obj_frame_skip_spin)
-        object_layout.addRow("YOLO type:", self.yolo_type_combo)
-        object_layout.addRow("YOLO model size:", self.yolo_model_combo)
-        object_layout.addRow("Confidence threshold:", self.obj_confidence_spin)
+        object_layout.addRow(t("frame_skip"), self.obj_frame_skip_spin)
+        object_layout.addRow(t("yolo_type"), self.yolo_type_combo)
+        object_layout.addRow(t("yolo_model_size"), self.yolo_model_combo)
+        object_layout.addRow(t("confidence_threshold"), self.obj_confidence_spin)
 
         object_box.setLayout(object_layout)
         advanced_layout.addWidget(object_box)
 
         # ── Group 3: Action Recognition ──
-        action_box = QGroupBox("Action Recognition")
+        action_box = QGroupBox(t("action_recognition"))
         action_layout = QFormLayout()
 
         self.sample_rate_spin = QSpinBox()
@@ -1301,28 +1308,28 @@ class VideoHighlighterGUI(QWidget):
         if restore_idx >= 0:
             self.action_models_combo.setCurrentIndex(restore_idx)
 
-        action_layout.addRow("Frame skip:", self.sample_rate_spin)
-        action_layout.addRow("Backend:", self.action_backend_combo)
-        action_layout.addRow("Models:", self.action_models_combo)
-        action_layout.addRow("R3D model variant:", self.r3d_model_combo)
+        action_layout.addRow(t("frame_skip"), self.sample_rate_spin)
+        action_layout.addRow(t("backend"), self.action_backend_combo)
+        action_layout.addRow(t("models"), self.action_models_combo)
+        action_layout.addRow(t("r3d_model_variant"), self.r3d_model_combo)
 
         action_box.setLayout(action_layout)
         advanced_layout.addWidget(action_box)
 
         # ── Group 4: Bounding Box Visualization ──
-        bbox_box = QGroupBox("Bounding Box Visualization")
+        bbox_box = QGroupBox(t("bbox_visualization"))
         bbox_layout = QVBoxLayout()
 
         info_label = QLabel("ℹ️ Enable bounding boxes, creates new file with extension _annotated.mp4 for debugging")
         info_label.setStyleSheet("color: #666; font-size: 9pt; font-style: italic;")
         bbox_layout.addWidget(info_label)
 
-        self.bbox_objects_chk = QCheckBox("Draw bounding boxes for object detection")
+        self.bbox_objects_chk = QCheckBox(t("draw_object_boxes"))
         self.bbox_objects_chk.setChecked(visualization_cfg.get("draw_object_boxes", False))
         self.bbox_objects_chk.setToolTip("Visualize detected objects with labeled bounding boxes")
         bbox_layout.addWidget(self.bbox_objects_chk)
 
-        self.bbox_actions_chk = QCheckBox("Draw labels for action recognition")
+        self.bbox_actions_chk = QCheckBox(t("draw_action_labels"))
         self.bbox_actions_chk.setChecked(visualization_cfg.get("draw_action_labels", False))
         self.bbox_actions_chk.setToolTip("Display detected action names on frames")
         bbox_layout.addWidget(self.bbox_actions_chk)
@@ -1339,7 +1346,7 @@ class VideoHighlighterGUI(QWidget):
         advanced_scroll_content.setLayout(advanced_layout)
         advanced_scroll.setWidget(advanced_scroll_content)
 
-        tabs.addTab(advanced_scroll, "Advanced")
+        tabs.addTab(advanced_scroll, t("advanced"))
 
         content_splitter = QSplitter(Qt.Vertical)
         content_splitter.addWidget(tabs)
@@ -1351,16 +1358,16 @@ class VideoHighlighterGUI(QWidget):
         self.llm_chat = LLMChatWidget(parent=self)
         llm_layout.addWidget(self.llm_chat)
         llm_tab.setLayout(llm_layout)
-        tabs.addTab(llm_tab, "🤖 LLM Chat")
+        tabs.addTab(llm_tab, t("llm_chat"))
 
         # --- Tab 5: Avoid ---
         avoid_tab = QWidget()
         avoid_layout = QVBoxLayout()
 
-        avoid_group = QGroupBox("🚫 Avoid People")
+        avoid_group = QGroupBox(t("avoid_people"))
         avoid_group_layout = QVBoxLayout()
 
-        self.avoid_face_recognition_chk = QCheckBox("Enable face recognition")
+        self.avoid_face_recognition_chk = QCheckBox(t("enable_face_recognition"))
         self.avoid_face_recognition_chk.setChecked(self.config_data.get("avoid", {}).get("face_recognition_enabled", False))
         self.avoid_face_recognition_chk.setToolTip(
             "When enabled, the pipeline runs face recognition to locate avoided people and skip or crop them out.\n"
@@ -1368,18 +1375,15 @@ class VideoHighlighterGUI(QWidget):
         )
         avoid_group_layout.addWidget(self.avoid_face_recognition_chk)
 
-        avoid_info = QLabel(
-            "People you name in the Timeline Viewer (right-click a face → Name) "
-            "show up here. Tick someone to exclude them from generated highlights."
-        )
+        avoid_info = QLabel(t("avoid_info"))
         avoid_info.setWordWrap(True)
         avoid_info.setStyleSheet("color: #666; font-size: 9pt;")
         avoid_group_layout.addWidget(avoid_info)
         avoid_method_row = QHBoxLayout()
-        avoid_method_row.addWidget(QLabel("When found:"))
+        avoid_method_row.addWidget(QLabel(t("when_found") + ":"))
         self.avoid_method_combo = QComboBox()
-        self.avoid_method_combo.addItem("Skip those moments", "skip")
-        self.avoid_method_combo.addItem("Crop them out (experimental)", "crop")
+        self.avoid_method_combo.addItem(t("skip_those_moments"), "skip")
+        self.avoid_method_combo.addItem(t("crop_them_out"), "crop")
         self.avoid_method_combo.currentIndexChanged.connect(
             lambda: setattr(self, "_avoid_method", self.avoid_method_combo.currentData()))
         avoid_method_row.addWidget(self.avoid_method_combo)
@@ -1387,10 +1391,10 @@ class VideoHighlighterGUI(QWidget):
         avoid_group_layout.addLayout(avoid_method_row)
 
         avoid_row = QHBoxLayout()
-        self.avoid_refresh_btn = QPushButton("🔄 Refresh from face database")
+        self.avoid_refresh_btn = QPushButton(t("refresh_from_db"))
         self.avoid_refresh_btn.clicked.connect(self.refresh_avoid_list)
         avoid_row.addWidget(self.avoid_refresh_btn)
-        self.avoid_scan_btn = QPushButton("🔍 Scan video for faces")
+        self.avoid_scan_btn = QPushButton(t("scan_video_faces"))
         self.avoid_scan_btn.setToolTip("Run face recognition over the first video in the list "
                                        "to collect everyone who appears, then tick who to avoid.")
         self.avoid_scan_btn.clicked.connect(self._on_scan_faces)
@@ -1400,7 +1404,7 @@ class VideoHighlighterGUI(QWidget):
         avoid_row.addWidget(self.avoid_count_label)
         avoid_row.addStretch()
         avoid_group_layout.addLayout(avoid_row)
-        self.avoid_clear_btn = QPushButton("🗑 Clear faces")
+        self.avoid_clear_btn = QPushButton(t("clear_faces"))
         self.avoid_clear_btn.setToolTip("Remove scanned faces from the bank (keeps named/avoided people).")
         self.avoid_clear_btn.clicked.connect(self._on_clear_faces)
         avoid_row.addWidget(self.avoid_clear_btn)
@@ -1416,29 +1420,29 @@ class VideoHighlighterGUI(QWidget):
         avoid_group.setLayout(avoid_group_layout)
         avoid_layout.addWidget(avoid_group, 1)
         avoid_tab.setLayout(avoid_layout)
-        tabs.addTab(avoid_tab, "🚫 Avoid")
+        tabs.addTab(avoid_tab, "🚫 " + t("avoid_people").replace("🚫 ", ""))
 
         # Defer first populate until after __init__ finishes (so log_output exists)
         QTimer.singleShot(0, self.refresh_avoid_list)
 
         # --- Run / Cancel Controls ---
         ctrl_layout = QHBoxLayout()
-        self.keep_temp_chk = QPushButton("Keep temp clips: ON" if highlights_cfg.get("keep_temp", False) else "Keep temp clips: OFF")
+        self.keep_temp_chk = QPushButton(t("keep_temp_clips_on") if highlights_cfg.get("keep_temp", False) else t("keep_temp_clips_off"))
         self.keep_temp_chk.setCheckable(True)
         self.keep_temp_chk.setChecked(highlights_cfg.get("keep_temp", False))
         self.keep_temp_chk.clicked.connect(lambda: self.keep_temp_chk.setText(
-            "Keep temp clips: ON" if self.keep_temp_chk.isChecked() else "Keep temp clips: OFF"))
+            t("keep_temp_clips_on") if self.keep_temp_chk.isChecked() else t("keep_temp_clips_off")))
 
-        self.timeline_btn = QPushButton("📊 Show Timeline Viewer")
+        self.timeline_btn = QPushButton(t("show_timeline"))
         self.timeline_btn.setStyleSheet("QPushButton { background-color: #2196F3; color: white; font-weight: bold; padding: 8px; }")
         self.timeline_btn.clicked.connect(self.open_timeline_viewer)
 
-        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn = QPushButton(t("cancel"))
         self.cancel_btn.setEnabled(False)
         self.cancel_btn.setStyleSheet("QPushButton:enabled { background-color: #ff4444; color: white; font-weight: bold; }")
         self.cancel_btn.clicked.connect(self.cancel_pipeline)
 
-        self.run_btn = QPushButton("Run Highlighter")
+        self.run_btn = QPushButton(t("run_highlighter"))
         self.run_btn.setStyleSheet("QPushButton { background-color: #4CAF50; color: white; font-weight: bold; padding: 8px; }")
         self.run_btn.clicked.connect(self.toggle_run)
 
@@ -1456,7 +1460,7 @@ class VideoHighlighterGUI(QWidget):
         log_widget = QWidget()
         log_layout = QVBoxLayout(log_widget)
         log_layout.setContentsMargins(0, 0, 0, 0)
-        log_layout.addWidget(QLabel("Log Output:"))
+        log_layout.addWidget(QLabel(t("log_output") + ":"))
         log_layout.addWidget(self.log_output)
         content_splitter.addWidget(log_widget)
         content_splitter.setStretchFactor(0, 3)
@@ -3399,6 +3403,29 @@ class VideoHighlighterGUI(QWidget):
             if self.worker.isRunning():
                 self.worker.wait(1000)  # Wait up to 1 second
             self.worker = None
+
+    def _on_language_changed(self, lang_name: str):
+        """Handle language switch and update all UI text."""
+        code = self.lang_combo.currentData()
+        translator.set_language(code)
+        
+        # Update window title
+        self.setWindowTitle(t("window_title"))
+        
+        # Update all groupboxes, labels, buttons etc.
+        # File picker
+        self.file_list.parentWidget().setTitle(t("input_videos"))
+        
+        # Time range
+        self.time_range_group.setTitle(t("processing_time_range"))
+        
+        # Progress
+        self.progress_group.setTitle(t("progress"))
+        
+        # Language
+        self.lang_combo.currentIndexChanged.emit(self.lang_combo.currentIndex())
+        
+        self.append_log(f"🌐 Language changed to: {lang_name}")
 
     def open_timeline_viewer(self):
         """Open timeline viewer for the selected video"""

@@ -1377,7 +1377,7 @@ class SignalTimelineWindow(QMainWindow):
         scroll_content = QWidget()
         scroll_layout = QVBoxLayout(scroll_content)
         scroll_layout.setContentsMargins(0, 0, 0, 0)
-        scroll_layout.addWidget(main_layout)
+        scroll_layout.addWidget(splitter)  # Добавляем splitter как виджет, а не layout
         scroll_area.setWidget(scroll_content)
         
         main_layout = QVBoxLayout(central_widget)
