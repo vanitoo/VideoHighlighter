@@ -780,7 +780,7 @@ class VideoHighlighterGUI(QWidget):
         self.download_pattern_input = QLineEdit()
         self.download_pattern_input.setText(self.config_data.get("download", {}).get("link_pattern", "/video/"))
         self.download_pattern_input.setPlaceholderText("/video/")
-        self.download_pattern_input.setToolTip(self._t("pattern_tooltip"))
+        self.download_pattern_input.setToolTip("Pattern to match in video links (e.g., /video/, /watch/)")
         pattern_layout.addWidget(self.download_pattern_input)
         download_form.addLayout(pattern_layout)
 
