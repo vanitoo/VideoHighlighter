@@ -1,6 +1,9 @@
 """
 Localization module for VideoHighlighter
 Supports English and Russian with auto-detection from system locale.
+
+IMPORTANT: Use force_translate() for UI initialization (always English base).
+Use t() for runtime translation only.
 """
 
 import locale
@@ -98,6 +101,7 @@ TRANSLATIONS = {
         "search_keywords": "Search keywords:",
         "subtitle_settings": "Subtitle Settings",
         "create_subtitles": "Create subtitles:",
+        "target_language": "Target language:",
         
         # Advanced tab
         "advanced": "Advanced",
@@ -270,6 +274,7 @@ TRANSLATIONS = {
         "search_keywords": "Ключевые слова для поиска:",
         "subtitle_settings": "Настройки субтитров",
         "create_subtitles": "Создать субтитры:",
+        "target_language": "Целевой язык:",
         
         # Advanced tab
         "advanced": "Дополнительно",
@@ -362,10 +367,12 @@ class Translator:
     """Handles translation with auto-detection of system locale."""
     
     def __init__(self):
-        self.current_lang = self._detect_language()
-        self.translations = TRANSLATIONS.get(self.current_lang, TRANSLATIONS["en"])
+        self._system_lang = self._detect_system_language()
+        self.current_lang = self._system_lang
+        self.translations = TRANSLATIONS[self.current_lang]
+        self._key_by_text = self._build_reverse_index()
         
-    def _detect_language(self) -> str:
+    def _detect_system_language(self) -> str:
         """Detect language from system locale."""
         try:
             # Check environment variable first (for testing)
@@ -385,6 +392,22 @@ class Translator:
         except Exception:
             return "en"
     
+    def should_auto_translate(self) -> bool:
+        """Returns True if we should auto-translate on startup."""
+        return self._system_lang == "ru"
+
+    def _build_reverse_index(self) -> Dict[str, str]:
+        """Map any known translated UI text back to its stable key."""
+        index = {}
+        for lang_translations in TRANSLATIONS.values():
+            for key, value in lang_translations.items():
+                index[key] = key
+                index[value] = key
+                stripped = value.rstrip(":").strip()
+                if stripped:
+                    index.setdefault(stripped, key)
+        return index
+    
     def set_language(self, lang: str):
         """Set translation language explicitly."""
         if lang in TRANSLATIONS:
@@ -402,8 +425,20 @@ class Translator:
         return "English"
     
     def translate(self, key: str) -> str:
-        """Translate a string by key."""
-        return self.translations.get(key, key)
+        """Translate a string by key or by already translated UI text."""
+        if key in self.translations:
+            return self.translations[key]
+
+        lookup_key = self._key_by_text.get(key)
+        if lookup_key is None:
+            lookup_key = self._key_by_text.get(key.rstrip(":").strip())
+        if lookup_key is None:
+            return key
+
+        translated = self.translations.get(lookup_key, key)
+        if key.rstrip().endswith(":") and not translated.rstrip().endswith(":"):
+            return translated + ":"
+        return translated
     
     def get_available_languages(self) -> list:
         """Get list of available languages."""
@@ -420,3 +455,10 @@ translator = Translator()
 def t(key: str) -> str:
     """Shortcut for translation."""
     return translator.translate(key)
+
+
+def force_translate(key: str) -> str:
+    """Translate based on system locale (for UI initialization only)."""
+    if translator.should_auto_translate():
+        return TRANSLATIONS["ru"].get(key, key)
+    return TRANSLATIONS["en"].get(key, key)

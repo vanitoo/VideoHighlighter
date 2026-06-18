@@ -19,7 +19,7 @@ from PySide6.QtCore import Qt, QThread, Signal, QTimer, QMetaObject, Q_ARG, Slot
 from downloader import download_videos_with_immediate_processing, extract_video_links, DownloadError, reset_duration_method_cache
 from llm.llm_chat_widget import LLMChatWidget
 from modules.video_cache import VideoAnalysisCache, CachedAnalysisData, build_analysis_cache_params
-from modules.localization import translator, t
+from modules.localization import translator, t, force_translate, TRANSLATIONS
 
 try:
     import openvino  # registers OpenVINO's DLL dir on Windows
@@ -581,7 +581,8 @@ class VideoHighlighterGUI(QWidget):
         self.lang_combo = QComboBox()
         for code, name in translator.get_available_languages():
             self.lang_combo.addItem(name, code)
-        self.lang_combo.setCurrentText(translator.get_language_name())
+        current_lang_index = self.lang_combo.findData(translator.get_current_language())
+        self.lang_combo.setCurrentIndex(current_lang_index if current_lang_index >= 0 else 0)
         self.lang_combo.currentTextChanged.connect(self._on_language_changed)
         lang_row.addWidget(self.lang_combo)
         lang_row.addStretch()
@@ -756,7 +757,8 @@ class VideoHighlighterGUI(QWidget):
         layout.addWidget(self.progress_group)
 
         # --- Tabs ---
-        tabs = QTabWidget()
+        self.tabs = QTabWidget()
+        tabs = self.tabs
 
         # --- Tab 0: Download ---
         download_tab = QWidget()
@@ -3414,33 +3416,118 @@ class VideoHighlighterGUI(QWidget):
         
         # Recursively update all QLabel, QPushButton, QGroupBox, QCheckBox text
         self._update_widget_texts(self)
+        self._retranslate_known_controls()
         
         self.append_log(f"🌐 Language changed to: {lang_name}")
 
     def _update_widget_texts(self, parent):
         """Recursively update text on all child widgets."""
-        from PySide6.QtWidgets import QLabel, QPushButton, QGroupBox, QCheckBox, QListWidget, QWidget
+        from PySide6.QtWidgets import QLabel, QPushButton, QGroupBox, QCheckBox, QComboBox, QTabWidget, QWidget
+
+        def translate_text(text):
+            if not text:
+                return text
+            translated = t(text)
+            return translated if translated != text else text
         
         for child in parent.findChildren(QWidget):
             if isinstance(child, QLabel) and child.text() and not child.objectName():
                 # Only translate if it's a UI label (not file paths, logs, etc.)
-                new_text = t(child.text())
+                new_text = translate_text(child.text())
                 if new_text != child.text():
                     child.setText(new_text)
             elif isinstance(child, QPushButton):
                 # Don't translate emoji buttons
                 if child.text() and not child.text().startswith(("🌐", "📊", "🔍", "🔄", "🗑", "▶", "⏸", "📦")):
-                    new_text = t(child.text())
+                    new_text = translate_text(child.text())
                     if new_text != child.text():
                         child.setText(new_text)
             elif isinstance(child, QGroupBox):
-                new_text = t(child.title())
+                new_text = translate_text(child.title())
                 if new_text != child.title():
                     child.setTitle(new_text)
             elif isinstance(child, QCheckBox):
-                new_text = t(child.text())
+                new_text = translate_text(child.text())
                 if new_text != child.text():
                     child.setText(new_text)
+            elif isinstance(child, QTabWidget):
+                for index in range(child.count()):
+                    text = child.tabText(index)
+                    new_text = translate_text(text)
+                    if new_text != text:
+                        child.setTabText(index, new_text)
+            elif isinstance(child, QComboBox):
+                current_data = child.currentData()
+                child.blockSignals(True)
+                for index in range(child.count()):
+                    text = child.itemText(index)
+                    new_text = translate_text(text)
+                    if new_text != text:
+                        child.setItemText(index, new_text)
+                restore_index = child.findData(current_data)
+                if restore_index >= 0:
+                    child.setCurrentIndex(restore_index)
+                child.blockSignals(False)
+
+    def _retranslate_known_controls(self):
+        """Update controls whose text is dynamic or contains icons."""
+        button_keys = {
+            "browse_btn": "add_videos",
+            "remove_btn": "remove_selected",
+            "clear_btn": "clear_all",
+            "browse_save_dir_btn": "browse",
+            "download_btn": "download_videos_btn",
+            "load_objects_btn": "load_labels",
+            "load_actions_btn": "load_labels",
+            "avoid_refresh_btn": "refresh_from_db",
+            "avoid_scan_btn": "scan_video_faces",
+            "avoid_clear_btn": "clear_faces",
+            "timeline_btn": "show_timeline",
+            "cancel_btn": "cancel",
+            "run_btn": "run_highlighter",
+        }
+        for attr, key in button_keys.items():
+            widget = getattr(self, attr, None)
+            if widget is not None:
+                widget.setText(t(key))
+
+        if hasattr(self, "keep_temp_chk"):
+            self.keep_temp_chk.setText(
+                t("keep_temp_clips_on") if self.keep_temp_chk.isChecked() else t("keep_temp_clips_off")
+            )
+
+        if hasattr(self, "tabs"):
+            tab_keys = [
+                "download_tab",
+                "basic_settings",
+                "transcript_subtitles",
+                "advanced",
+                "llm_chat",
+                "avoid_people",
+            ]
+            for index, key in enumerate(tab_keys):
+                if index < self.tabs.count():
+                    self.tabs.setTabText(index, t(key))
+
+        if hasattr(self, "lang_combo"):
+            current_data = self.lang_combo.currentData()
+            self.lang_combo.blockSignals(True)
+            self.lang_combo.clear()
+            for code, name in translator.get_available_languages():
+                self.lang_combo.addItem(name, code)
+            index = self.lang_combo.findData(current_data)
+            self.lang_combo.setCurrentIndex(index if index >= 0 else 0)
+            self.lang_combo.blockSignals(False)
+
+        if hasattr(self, "avoid_method_combo"):
+            current_data = self.avoid_method_combo.currentData()
+            self.avoid_method_combo.blockSignals(True)
+            self.avoid_method_combo.clear()
+            self.avoid_method_combo.addItem(t("skip_those_moments"), "skip")
+            self.avoid_method_combo.addItem(t("crop_them_out"), "crop")
+            index = self.avoid_method_combo.findData(current_data)
+            self.avoid_method_combo.setCurrentIndex(index if index >= 0 else 0)
+            self.avoid_method_combo.blockSignals(False)
 
     def open_timeline_viewer(self):
         """Open timeline viewer for the selected video"""

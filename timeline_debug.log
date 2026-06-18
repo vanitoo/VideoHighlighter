@@ -618,3 +618,63 @@
 [15:09:06.824] ============================================================
 
 [15:09:15.580] ✅ [thread] extract_waveform() returned list len=2001 first=(-0.79547119140625, 0.816986083984375)
+[16:25:34.647] ============================================================
+[16:25:34.647] 🚀 TIMELINE VIEWER STARTING
+[16:25:34.648] ============================================================
+[16:25:34.648] Python version: 3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]
+[16:25:34.648] Current working directory: C:\project\VideoHighlighter
+[16:25:34.649] Script location: c:\project\VideoHighlighter\signal_timeline_viewer.py
+[16:25:34.800] SignalTimelineWindow.__init__ CALLED with video_path=G:/iven/2/Yandex.Disk/0_Проекты/video_ira/001_Никольская/001_никольская.mp4
+[16:25:34.800]   cache_data provided: True
+[16:25:34.801] 
+============================================================
+[16:25:34.801] 🔍 [TIMELINE] SignalTimelineWindow.__init__ START
+[16:25:34.801] ============================================================
+[16:25:34.801]   - video_path: G:/iven/2/Yandex.Disk/0_Проекты/video_ira/001_Никольская/001_никольская.mp4
+[16:25:34.802]   - cache_data provided: True
+[16:25:34.802]   - cache_data type: <class 'dict'>
+[16:25:34.802]   - cache_data keys: ['object_bboxes', 'action_bboxes']
+[16:25:34.802]   ✓ Using provided cache_data
+[16:25:34.802] 
+  📊 FINAL CACHE DATA STATE:
+[16:25:34.803]   - self.cache_data is None? False
+[16:25:34.803]   - self.cache_data keys: ['object_bboxes', 'action_bboxes']
+[16:25:34.803]     - 'motion_events' present: False
+[16:25:34.803]     - 'motion_peaks' present: False
+[16:25:34.803]     - 'scenes' present: False
+[16:25:34.804]     - 'video_metadata' present: False
+[16:25:34.804]   - video_duration from cache: 0
+[16:25:34.804]   - Attempting to get duration from video file...
+[16:25:34.832]   - Got video duration from file: 814.6s
+[16:25:34.833] 
+🔍 [TIMELINE] get_cache_instance
+[16:25:34.834]   - Cache directory contains 3 cache files:
+[16:25:34.834]     - 39b3ec412c115357b3cfeb69d9ff1d4068c8fb11216911c54983ddbe8079965a.7477a8e9c2ab26f8.cache.json (117.4 KB)
+[16:25:34.836]       Keys: dict_keys(['video_path', 'video_hash', 'cached_at', 'cache_version', 'cache_complete', 'analysis_signature', 'analysis_parameters', 'video_metadata', 'transcript', 'keyword_matches', 'objects', 'actions', 'scenes', 'motion_events', 'motion_peaks', 'pipeline_version', 'cache_flags', 'audio', 'audio_peaks', 'highlight_history', 'highlight_segments', 'highlight_metadata'])
+[16:25:34.836]       Video: G:\iven\2\Yandex.Disk\0_РџСЂРѕРµРєС‚С‹\video_ira\001_РќРёРєРѕР»СЊСЃРєР°СЏ\001_РЅРёРєРѕР»СЊСЃРєР°СЏ_temp_trimmed.mp4
+[16:25:34.837]     - 497a3634574026826765cb64b6f9d6b1ac8c6c5c26b391042abfe976f114ed35_bbox.cache.json (6002.8 KB)
+[16:25:34.924]       Keys: dict_keys(['object_bboxes', 'action_bboxes'])
+[16:25:34.924]     - ec0867b74962b5a12da6bf1af644d1d3c94a4cbd87e7c848b79c46a4aafd4b24.dab04bfdf78741aa.cache.json (159.5 KB)
+[16:25:34.925]       Could not read file
+[16:25:34.929]   - cache instance: True
+[16:25:34.929] 
+  📊 EXTRACTED INFO:
+[16:25:34.929]   - action_types: []
+[16:25:34.930]   - object_classes: []
+[16:25:34.930] ⚠️ No waveform found in cache
+[16:25:34.930]   - waveform loaded: False, length: 0
+[16:25:34.931] 
+  🎨 Initializing UI...
+[16:25:34.933] 🎵 init_ui: Creating scene with waveform data (0 points)
+[16:25:40.623] ✅ Live overlay loaded (25762 detections)
+[16:25:40.634] ✅ Precomp overlay manager ready
+[16:25:40.640] ✅ Transcript: loaded 156 segments from 001_никольская_highlight_ru.srt
+[16:25:40.973]   ⚠️ No cached waveform or empty waveform, starting extraction...
+[16:25:41.038] ✓ Video contains audio stream
+[16:25:41.039] 🎵 [thread] Starting waveform extraction...
+[16:25:41.039] 
+============================================================
+[16:25:41.040] ✅ [TIMELINE] SignalTimelineWindow.__init__ COMPLETE
+[16:25:41.040] ============================================================
+
+[16:25:41.863] ✅ [thread] extract_waveform() returned list len=2001 first=(-0.79547119140625, 0.816986083984375)

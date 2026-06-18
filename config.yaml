@@ -49,13 +49,13 @@ keywords:
   interesting: []
 transcript:
   enabled: true
-  model: base
-  source_lang: auto
+  model: tiny
+  source_lang: Auto
   search_keywords: []
 subtitles:
   enabled: true
-  source_lang: ru
-  target_lang: ru
+  source_lang: en
+  target_lang: en
 advanced:
   frame_skip: 1
   object_frame_skip: 10
